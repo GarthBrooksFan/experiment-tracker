@@ -1,0 +1,135 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Experiment {
+  id                   String   @id @default(cuid())
+  name                 String
+  description          String?
+  researcher           String
+  hypothesis           String?
+  methodology          String?
+  
+  // Timing
+  expectedDuration     String?  // e.g., "2"
+  durationUnit         String   @default("hours") // minutes, hours, days, weeks
+  startDate            String?  // ISO date string
+  endDate              String?  // ISO date string
+  
+  // Resource allocation
+  assignedResource     String?
+  resourceUtilization  String?  // percentage as string e.g., "75"
+  
+  // Status and classification
+  status               String   @default("planned") // planned, in-progress, completed, failed, paused
+  priority             String   @default("medium")
+  
+  // Technical details
+  datasetPath          String?
+  modelConfig          String?
+  hardwareRequirements String?
+  dependencies         String?
+  
+  // ML/RL Training Parameters
+  trainingTask         String?
+  trainingBatchSize    String?
+  episodeLength        String?
+  learningRate         String?
+  stepsTrainedFor      String?
+  epochsTrainedFor     String?
+  episodesInDataset    String?
+  taskHoursInDataset   String?
+  framesInDataset      String?
+  scoring              String?
+  
+  // Settings
+  enableMonitoring     Boolean  @default(true)
+  autoBackup           Boolean  @default(true)
+  notifyOnCompletion   Boolean  @default(true)
+  
+  // Additional
+  notes                String?
+  tags                 String?  // JSON string array of tags
+  
+  // Timestamps
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  
+  // Relations
+  logs                 ExperimentLog[]
+}
+
+model Resource {
+  id                   String   @id @default(cuid())
+  resourceId           String   @unique // e.g., "gpu-cluster-1"
+  name                 String   // e.g., "GPU Cluster Alpha"
+  type                 String   // e.g., "Compute", "Physical Hardware", "Storage"
+  totalUnits           String   // e.g., "8x A100", "64 cores"
+  status               String   @default("active") // active, idle, maintenance
+  currentUsage         Int      @default(0) // percentage 0-100
+  
+  // Current assignment
+  currentExperiment    String?
+  estimatedCompletion  String?
+  
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+}
+
+model Researcher {
+  id                   String   @id @default(cuid())
+  name                 String   @unique
+  email                String?  @unique
+  department           String?
+  active               Boolean  @default(true)
+  
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+}
+
+model ExperimentLog {
+  id                   String   @id @default(cuid())
+  experimentId         String
+  timestamp            DateTime @default(now())
+  level                String   // info, warning, error
+  message              String
+  metadata             String?  // JSON string for additional data
+  
+  experiment           Experiment @relation(fields: [experimentId], references: [id], onDelete: Cascade)
+  
+  @@index([experimentId])
+}
+
+model Tag {
+  id                   String   @id @default(cuid())
+  name                 String   @unique
+  category             String   // e.g., "Experiment Type", "Hardware Requirements"
+  color                String?  // hex color code
+  
+  createdAt            DateTime @default(now())
+}
+
+model ResourceAllocation {
+  id                   String   @id @default(cuid())
+  resourceId           String
+  experimentId         String
+  startDate            String   // ISO date string
+  endDate              String   // ISO date string
+  utilizationPercent   Int      // 0-100
+  status               String   @default("scheduled") // scheduled, active, completed, cancelled
+  
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  
+  @@index([resourceId])
+  @@index([experimentId])
+  @@unique([resourceId, experimentId, startDate])
+}
