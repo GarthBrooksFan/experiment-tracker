@@ -10,10 +10,12 @@
     "db:seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
+    "@auth/prisma-adapter": "^2.10.0",
     "@prisma/client": "^6.10.1",
     "@subframe/core": "^1.143.0",
     "classnames": "^2.3.2",
     "next": "^14.2.3",
+    "next-auth": "^4.24.11",
     "prisma": "^6.10.1",
     "react": "^18",
     "react-dom": "^18",
