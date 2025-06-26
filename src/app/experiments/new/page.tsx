@@ -7,16 +7,16 @@ import Link from "next/link";
 export default function NewExperiment() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [researchers, setResearchers] = useState<Array<{ id: string; name: string }>>([]);
+  const [availableResources, setAvailableResources] = useState<Array<{ 
+    id: string; 
+    resourceId: string;
+    name: string; 
+    type: string; 
+    totalUnits: string;
+    status: string;
+  }>>([]);
 
   // Resource options matching the resources page
-  const availableResources = [
-    { id: "gpu-cluster-1", name: "GPU Cluster Alpha", type: "Compute", units: "8x A100" },
-    { id: "gpu-cluster-2", name: "GPU Cluster Beta", type: "Compute", units: "4x RTX 3090" },
-    { id: "physical-lab-a", name: "Physical Lab A", type: "Physical Hardware", units: "Robotic Arm Setup" },
-    { id: "cpu-cluster", name: "CPU Processing Cluster", type: "Compute", units: "64 cores" },
-    { id: "storage-primary", name: "Primary Storage", type: "Storage", units: "50TB" }
-  ];
-
   const experimentStatuses = [
     { value: "planned", label: "Planned", color: "blue" },
     { value: "in-progress", label: "In Progress", color: "green" },
@@ -87,9 +87,23 @@ export default function NewExperiment() {
     }
   };
 
-  // Fetch researchers on component mount
+  // Fetch resources from API
+  const fetchResources = async () => {
+    try {
+      const response = await fetch('/api/resources');
+      if (response.ok) {
+        const data = await response.json();
+        setAvailableResources(data.resources || []);
+      }
+    } catch (error) {
+      console.error('Error fetching resources:', error);
+    }
+  };
+
+  // Fetch data on component mount
   useEffect(() => {
     fetchResearchers();
+    fetchResources();
   }, []);
 
   const [formData, setFormData] = useState({
@@ -397,8 +411,8 @@ export default function NewExperiment() {
                 >
                   <option value="">Select resource...</option>
                   {availableResources.map((resource) => (
-                    <option key={resource.id} value={resource.id}>
-                      {resource.name} ({resource.units})
+                    <option key={resource.id} value={resource.resourceId}>
+                      {resource.name} ({resource.totalUnits})
                     </option>
                   ))}
                 </select>

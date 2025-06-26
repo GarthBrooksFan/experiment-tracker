@@ -40,6 +40,7 @@ export default function ExperimentsSearchPage() {
   const [totalExperiments, setTotalExperiments] = useState(0);
   const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
   const [researchers, setResearchers] = useState<Array<{ id: string; name: string }>>([]);
+  const [resources, setResources] = useState<Array<{ id: string; name: string }>>([]);
 
   // Fetch experiments from API - wrapped in useCallback to prevent infinite loops
   const fetchExperiments = useCallback(async () => {
@@ -98,6 +99,19 @@ export default function ExperimentsSearchPage() {
     }
   }, []);
 
+  // Fetch resources from API
+  const fetchResources = useCallback(async () => {
+    try {
+      const response = await fetch('/api/resources');
+      if (response.ok) {
+        const data = await response.json();
+        setResources(data.resources || []);
+      }
+    } catch (error) {
+      console.error('Error fetching resources:', error);
+    }
+  }, []);
+
   // Fetch data on component mount and when filters/sort change
   useEffect(() => {
     fetchExperiments();
@@ -107,6 +121,11 @@ export default function ExperimentsSearchPage() {
   useEffect(() => {
     fetchResearchers();
   }, [fetchResearchers]);
+
+  // Fetch resources on component mount only
+  useEffect(() => {
+    fetchResources();
+  }, [fetchResources]);
 
   const handleTagToggle = (tag: string) => {
     setFilters(prev => ({
@@ -139,14 +158,8 @@ export default function ExperimentsSearchPage() {
   };
 
   const getResourceDisplayName = (resourceId: string) => {
-    const resourceMap: { [key: string]: string } = {
-      'gpu-cluster-1': 'GPU Cluster Alpha',
-      'gpu-cluster-2': 'GPU Cluster Beta',
-      'physical-lab-a': 'Physical Lab A',
-      'cpu-cluster': 'CPU Processing Cluster',
-      'storage-primary': 'Primary Storage'
-    };
-    return resourceMap[resourceId] || resourceId || 'No resource assigned';
+    const resource = resources.find(r => r.id === resourceId);
+    return resource?.name || resourceId || 'No resource assigned';
   };
 
   const formatDate = (dateString: string) => {
@@ -273,11 +286,11 @@ export default function ExperimentsSearchPage() {
                 className="w-full h-10 px-3 border border-neutral-300 rounded-md focus:border-brand-500 focus:outline-none bg-white"
               >
                 <option value="">All Resources</option>
-                <option value="gpu-cluster-1">GPU Cluster Alpha</option>
-                <option value="gpu-cluster-2">GPU Cluster Beta</option>
-                <option value="physical-lab-a">Physical Lab A</option>
-                <option value="cpu-cluster">CPU Cluster</option>
-                <option value="storage-primary">Primary Storage</option>
+                {resources.map((resource) => (
+                  <option key={resource.id} value={resource.id}>
+                    {resource.name}
+                  </option>
+                ))}
               </select>
             </div>
 
