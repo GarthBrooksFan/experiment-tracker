@@ -26,6 +26,7 @@ export default function SchedulePage() {
     error: null
   });
   const [scheduledExperiments, setScheduledExperiments] = useState<ScheduledExperiment[]>([]);
+  const [resources, setResources] = useState<Array<{ id: string; name: string }>>([]);
 
   // Fetch scheduled experiments from API - wrapped in useCallback to prevent infinite loops
   const fetchScheduledExperiments = useCallback(async () => {
@@ -78,10 +79,28 @@ export default function SchedulePage() {
     }
   }, [currentDate, viewMode]); // Dependencies that should trigger refetch
 
+  // Fetch resources from API
+  const fetchResources = useCallback(async () => {
+    try {
+      const response = await fetch('/api/resources');
+      if (response.ok) {
+        const data = await response.json();
+        setResources(data.resources || []);
+      }
+    } catch (error) {
+      console.error('Error fetching resources:', error);
+    }
+  }, []);
+
   // Fetch data when component mounts or date/view changes
   useEffect(() => {
     fetchScheduledExperiments();
   }, [fetchScheduledExperiments]);
+
+  // Fetch resources on component mount
+  useEffect(() => {
+    fetchResources();
+  }, [fetchResources]);
 
   // Helper to get date strings for testing (relative to today)
   const getDateString = (daysFromToday: number) => {
@@ -162,14 +181,20 @@ export default function SchedulePage() {
   const getResourceColor = (resource: string | undefined) => {
     if (!resource) return "bg-gray-500";
     
-    const resourceColorMap = {
-      "gpu-cluster-1": "bg-blue-500",
-      "gpu-cluster-2": "bg-green-500", 
-      "physical-lab-a": "bg-purple-500",
-      "cpu-cluster": "bg-orange-500",
-      "storage-primary": "bg-pink-500"
-    };
-    return resourceColorMap[resource as keyof typeof resourceColorMap] || "bg-gray-500";
+    // Generate consistent colors based on resource index
+    const colors = [
+      "bg-blue-500",
+      "bg-green-500", 
+      "bg-purple-500",
+      "bg-orange-500",
+      "bg-pink-500",
+      "bg-indigo-500",
+      "bg-red-500",
+      "bg-yellow-500"
+    ];
+    
+    const resourceIndex = resources.findIndex(r => r.id === resource);
+    return colors[resourceIndex % colors.length] || "bg-gray-500";
   };
 
   // Tag-based experiment type colors (using tag system)
@@ -323,22 +348,26 @@ export default function SchedulePage() {
           <div className="p-3 bg-neutral-50 rounded-lg">
             <p className="text-sm font-medium text-neutral-700 mb-2">Resource Legend:</p>
             <div className="flex flex-wrap gap-4">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-blue-500 rounded"></div>
-                <span className="text-sm">GPU Cluster Alpha</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-green-500 rounded"></div>
-                <span className="text-sm">GPU Cluster Beta</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-purple-500 rounded"></div>
-                <span className="text-sm">Physical Lab A</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-orange-500 rounded"></div>
-                <span className="text-sm">CPU Cluster</span>
-              </div>
+              {resources.map((resource, index) => {
+                const colors = [
+                  "bg-blue-500",
+                  "bg-green-500", 
+                  "bg-purple-500",
+                  "bg-orange-500",
+                  "bg-pink-500",
+                  "bg-indigo-500",
+                  "bg-red-500",
+                  "bg-yellow-500"
+                ];
+                const colorClass = colors[index % colors.length];
+                
+                return (
+                  <div key={resource.id} className="flex items-center gap-2">
+                    <div className={`w-3 h-3 rounded ${colorClass}`}></div>
+                    <span className="text-sm">{resource.name}</span>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
