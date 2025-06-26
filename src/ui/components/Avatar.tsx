@@ -82,6 +82,7 @@ const AvatarRoot = React.forwardRef<HTMLElement, AvatarRootProps>(
               }
             )}
             src={image}
+            alt="Avatar"
           />
         ) : null}
       </div>

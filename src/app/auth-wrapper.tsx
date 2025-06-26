@@ -38,8 +38,8 @@ export function AuthWrapper({ children }: { children: React.ReactNode }) {
               </div>
               <Button
                 onClick={() => signOut()}
-                variant="outline"
-                size="sm"
+                variant="neutral-secondary"
+                size="small"
               >
                 Sign Out
               </Button>

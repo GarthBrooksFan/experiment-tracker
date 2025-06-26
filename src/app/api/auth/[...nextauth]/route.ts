@@ -49,7 +49,7 @@ const handler = NextAuth({
         if (dbUser) {
           session.user.id = dbUser.id
           session.user.isAuthorized = dbUser.isAuthorized
-          session.user.githubUsername = dbUser.githubUsername
+          session.user.githubUsername = dbUser.githubUsername || undefined
         }
       }
       return session
