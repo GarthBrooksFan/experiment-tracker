@@ -234,32 +234,50 @@ export default function ResourcesPage() {
         <div className="bg-white rounded-lg shadow-sm border p-6">
           <h2 className="text-xl font-semibold text-neutral-900 mb-4">System Alerts</h2>
           
+          {/* Dynamic alerts based on actual resource data */}
           <div className="space-y-3">
-            <div className="flex items-center gap-3 p-3 bg-red-50 border border-red-200 rounded-lg">
-              <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-              <div className="flex-1">
-                <p className="text-sm font-medium text-red-900">High GPU utilization on Cluster Alpha</p>
-                <p className="text-sm text-red-700">85% usage for 2+ hours. Consider load balancing.</p>
+            {resources.length === 0 ? (
+              <div className="text-center py-8 text-neutral-500">
+                <p>No resources found. Add resources to see system alerts.</p>
               </div>
-              <Button variant="neutral-tertiary" size="small">Investigate</Button>
-            </div>
-
-            <div className="flex items-center gap-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-              <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-              <div className="flex-1">
-                <p className="text-sm font-medium text-yellow-900">Storage approaching capacity</p>
-                <p className="text-sm text-yellow-700">Primary storage at 73%. Plan data cleanup or expansion.</p>
-              </div>
-              <Button variant="neutral-tertiary" size="small">Review</Button>
-            </div>
-
-            <div className="flex items-center gap-3 p-3 bg-green-50 border border-green-200 rounded-lg">
-              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-              <div className="flex-1">
-                <p className="text-sm font-medium text-green-900">GPU Cluster Beta available</p>
-                <p className="text-sm text-green-700">4x RTX 3090 cluster is idle and ready for new experiments.</p>
-              </div>
-            </div>
+            ) : (
+              <>
+                {/* Generate alerts for high usage resources */}
+                {resources
+                  .filter(resource => resource.calculatedUsage >= 85)
+                  .map(resource => (
+                    <div key={`alert-${resource.id}`} className="flex items-center gap-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                      <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-red-900">High utilization on {resource.name}</p>
+                        <p className="text-sm text-red-700">{resource.calculatedUsage}% usage. Consider load balancing or scheduling adjustments.</p>
+                      </div>
+                    </div>
+                  ))
+                }
+                
+                {/* Generate alerts for idle resources */}
+                {resources
+                  .filter(resource => resource.calculatedUsage === 0 && resource.status === 'active')
+                  .map(resource => (
+                    <div key={`idle-${resource.id}`} className="flex items-center gap-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-green-900">{resource.name} available</p>
+                        <p className="text-sm text-green-700">{resource.totalUnits} is idle and ready for new experiments.</p>
+                      </div>
+                    </div>
+                  ))
+                }
+                
+                {/* Show message if no alerts */}
+                {resources.every(r => r.calculatedUsage < 85 && (r.calculatedUsage > 0 || r.status !== 'active')) && (
+                  <div className="text-center py-8 text-neutral-500">
+                    <p>All systems operating normally. No alerts at this time.</p>
+                  </div>
+                )}
+              </>
+            )}
           </div>
         </div>
       </div>
