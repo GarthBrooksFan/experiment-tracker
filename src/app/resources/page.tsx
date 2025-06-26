@@ -225,13 +225,7 @@ export default function ResourcesPage() {
                 </div>
               )}
 
-              {resource.status === "idle" && (
-                <div className="border-t pt-4">
-                  <Button variant="brand-primary" size="small" className="w-full">
-                    Allocate Resource
-                  </Button>
-                </div>
-              )}
+
             </div>
           ))}
         </div>
@@ -265,7 +259,6 @@ export default function ResourcesPage() {
                 <p className="text-sm font-medium text-green-900">GPU Cluster Beta available</p>
                 <p className="text-sm text-green-700">4x RTX 3090 cluster is idle and ready for new experiments.</p>
               </div>
-              <Button variant="brand-primary" size="small">Allocate</Button>
             </div>
           </div>
         </div>
